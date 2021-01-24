@@ -27,29 +27,37 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 
 
 
+
 var width = 500;
 var height = 500;
 var radius = 8;
 (0,d3_selection__WEBPACK_IMPORTED_MODULE_1__.default)('svg#map').attr('width', "".concat(width, "px")).attr('height', "".concat(height, "px"));
 (0,d3_fetch__WEBPACK_IMPORTED_MODULE_2__.default)('https://www.asiapacific.ca/pgapi/public/jurisdiction.php?sisters').then(function (response) {
-  response.map(function (j) {
+  response.jurisdictions.map(function (j) {
     j.x = Math.random() * width;
     j.y = Math.random() * height;
+  }); // convert links to direct references
+
+  response.links.map(function (l) {
+    l.pair = l.pair.map(function (sis_id) {
+      return response.jurisdictions.find(function (j) {
+        return j.geo_id == sis_id;
+      });
+    });
   });
-  var links = parseLinks(response);
-  var lines = (0,d3_selection__WEBPACK_IMPORTED_MODULE_1__.default)('svg#map').selectAll('line').data(links).join('line');
+  var lines = (0,d3_selection__WEBPACK_IMPORTED_MODULE_1__.default)('svg#map').selectAll('line').data(response.links).join('line');
   lines.attr('x1', function (l) {
-    return l[0].x;
+    return l.pair[0].x;
   }).attr('x2', function (l) {
-    return l[1].x;
+    return l.pair[1].x;
   }).attr('y1', function (l) {
-    return l[0].y;
+    return l.pair[0].y;
   }).attr('y2', function (l) {
-    return l[1].y;
+    return l.pair[1].y;
   });
-  var circles = (0,d3_selection__WEBPACK_IMPORTED_MODULE_1__.default)('svg#map').selectAll('circle').data(response).join('circle');
-  circles.attr('id', function (d) {
-    return d.geo_id;
+  var circles = (0,d3_selection__WEBPACK_IMPORTED_MODULE_1__.default)('svg#map').selectAll('circle').data(response.jurisdictions).join('circle');
+  circles.attr('id', function (j) {
+    return j.geo_id;
   }).attr('r', radius).attr('cx', function (j) {
     return j.x;
   }).attr('cy', function (j) {

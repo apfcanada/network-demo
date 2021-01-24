@@ -1,5 +1,12 @@
 import { select } from 'd3-selection'
 import { json } from 'd3-fetch'
+import { 
+	forceSimulation, 
+	forceManyBody,
+	forceY,
+	forceCollide,
+	forceLink
+} from 'd3-force'
 
 import './basic.css'
 
@@ -13,28 +20,34 @@ select('svg#map')
 	
 json('https://www.asiapacific.ca/pgapi/public/jurisdiction.php?sisters')
 	.then( response => {
-		response.map( j => {
+
+		response.jurisdictions.map( j => {
 			j.x = Math.random()*width
 			j.y = Math.random()*height
 		} )
+		// convert links to direct references
+		response.links.map( l => {
+			l.pair = l.pair.map( sis_id => {
+				return response.jurisdictions.find( j => j.geo_id == sis_id )
+			} )
+		} )
 		
-		const links = parseLinks(response)
 		let lines = select('svg#map')
 			.selectAll('line')
-			.data(links)
+			.data(response.links)
 			.join('line')
 		lines
-			.attr('x1',l=>l[0].x)
-			.attr('x2',l=>l[1].x)
-			.attr('y1',l=>l[0].y)
-			.attr('y2',l=>l[1].y)
+			.attr('x1',l=>l.pair[0].x)
+			.attr('x2',l=>l.pair[1].x)
+			.attr('y1',l=>l.pair[0].y)
+			.attr('y2',l=>l.pair[1].y)
 			
 		let circles = select('svg#map')
 			.selectAll('circle')
-			.data(response)
+			.data(response.jurisdictions)
 			.join('circle')
 		circles
-			.attr('id',d=>d.geo_id)
+			.attr('id',j=>j.geo_id)
 			.attr('r',radius)
 			.attr('cx',j=>j.x)
 			.attr('cy',j=>j.y)

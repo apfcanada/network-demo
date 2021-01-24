@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/apfcanada/network-demo#readme",
   "dependencies": {
+    "d3-drag": "^2.0.0",
     "d3-fetch": "^2.0.0",
     "d3-force": "^2.1.1",
     "d3-selection": "^2.0.0"

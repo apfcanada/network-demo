@@ -16,18 +16,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var d3_force__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! d3-force */ "./node_modules/d3-force/src/manyBody.js");
 /* harmony import */ var d3_force__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! d3-force */ "./node_modules/d3-force/src/x.js");
 /* harmony import */ var d3_force__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! d3-force */ "./node_modules/d3-force/src/y.js");
+/* harmony import */ var d3_drag__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! d3-drag */ "./node_modules/d3-drag/src/drag.js");
 /* harmony import */ var _basic_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./basic.css */ "./src/basic.css");
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
-
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter); }
-
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 
 
@@ -56,6 +46,9 @@ var radius = 8;
       return j.geo_id == l.pair[1];
     });
   });
+  var simulation = (0,d3_force__WEBPACK_IMPORTED_MODULE_3__.default)(jurisdictions).force("link", (0,d3_force__WEBPACK_IMPORTED_MODULE_4__.default)(links).id(function (d) {
+    return d.uid;
+  }).distance(20).strength(0.5)).force("charge", (0,d3_force__WEBPACK_IMPORTED_MODULE_5__.default)().strength(-50)).force("x", (0,d3_force__WEBPACK_IMPORTED_MODULE_6__.default)(width / 2)).force("y", (0,d3_force__WEBPACK_IMPORTED_MODULE_7__.default)(height / 2));
   var lines = (0,d3_selection__WEBPACK_IMPORTED_MODULE_1__.default)('svg#map').selectAll('line').data(links).join('line');
   lines.attr('x1', function (l) {
     return l.pair[0].x;
@@ -73,12 +66,9 @@ var radius = 8;
     return j.x;
   }).attr('cy', function (j) {
     return j.y;
-  }).append('title').text(function (d) {
+  }).call(drag(simulation)).append('title').text(function (d) {
     return d.name.en;
   });
-  var simulation = (0,d3_force__WEBPACK_IMPORTED_MODULE_3__.default)(jurisdictions).force("link", (0,d3_force__WEBPACK_IMPORTED_MODULE_4__.default)(links).id(function (d) {
-    return d.uid;
-  }).distance(20).strength(0.5)).force("charge", (0,d3_force__WEBPACK_IMPORTED_MODULE_5__.default)().strength(-50)).force("x", (0,d3_force__WEBPACK_IMPORTED_MODULE_6__.default)(width / 2)).force("y", (0,d3_force__WEBPACK_IMPORTED_MODULE_7__.default)(height / 2));
   simulation.on("tick", function () {
     lines.attr("x1", function (d) {
       return d.source.x;
@@ -97,25 +87,25 @@ var radius = 8;
   });
 });
 
-function parseLinks(sisters) {
-  // process links
-  var pairs = new Set(); // links are strings of the two geo_id's with the lower coming first
+function drag(simulation) {
+  function dragstarted(event) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    event.subject.fx = event.subject.x;
+    event.subject.fy = event.subject.y;
+  }
 
-  sisters.map(function (j) {
-    j.links.map(function (sis_id) {
-      var ids = j.geo_id < sis_id ? [j.geo_id, sis_id] : [sis_id, j.geo_id];
-      pairs.add(ids.join(','));
-    });
-  }); // replace strings with object references
+  function dragged(event) {
+    event.subject.fx = event.x;
+    event.subject.fy = event.y;
+  }
 
-  return _toConsumableArray(pairs).map(function (link_csv) {
-    var ids = link_csv.split(',');
-    return [sisters.find(function (j) {
-      return j.geo_id == ids[0];
-    }), sisters.find(function (j) {
-      return j.geo_id == ids[1];
-    })];
-  });
+  function dragended(event) {
+    if (!event.active) simulation.alphaTarget(0);
+    event.subject.fx = null;
+    event.subject.fy = null;
+  }
+
+  return (0,d3_drag__WEBPACK_IMPORTED_MODULE_8__.default)().on("start", dragstarted).on("drag", dragged).on("end", dragended);
 }
 
 /***/ }),
@@ -312,6 +302,344 @@ function set(type, name, callback) {
 }
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (dispatch);
+
+
+/***/ }),
+
+/***/ "./node_modules/d3-drag/src/constant.js":
+/*!**********************************************!*\
+  !*** ./node_modules/d3-drag/src/constant.js ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (x => () => x);
+
+
+/***/ }),
+
+/***/ "./node_modules/d3-drag/src/drag.js":
+/*!******************************************!*\
+  !*** ./node_modules/d3-drag/src/drag.js ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* export default binding */ __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
+/* harmony import */ var d3_dispatch__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! d3-dispatch */ "./node_modules/d3-dispatch/src/dispatch.js");
+/* harmony import */ var d3_selection__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! d3-selection */ "./node_modules/d3-selection/src/select.js");
+/* harmony import */ var d3_selection__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! d3-selection */ "./node_modules/d3-selection/src/pointer.js");
+/* harmony import */ var _nodrag_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./nodrag.js */ "./node_modules/d3-drag/src/nodrag.js");
+/* harmony import */ var _noevent_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./noevent.js */ "./node_modules/d3-drag/src/noevent.js");
+/* harmony import */ var _constant_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./constant.js */ "./node_modules/d3-drag/src/constant.js");
+/* harmony import */ var _event_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./event.js */ "./node_modules/d3-drag/src/event.js");
+
+
+
+
+
+
+
+// Ignore right-click, since that should open the context menu.
+function defaultFilter(event) {
+  return !event.ctrlKey && !event.button;
+}
+
+function defaultContainer() {
+  return this.parentNode;
+}
+
+function defaultSubject(event, d) {
+  return d == null ? {x: event.x, y: event.y} : d;
+}
+
+function defaultTouchable() {
+  return navigator.maxTouchPoints || ("ontouchstart" in this);
+}
+
+/* harmony default export */ function __WEBPACK_DEFAULT_EXPORT__() {
+  var filter = defaultFilter,
+      container = defaultContainer,
+      subject = defaultSubject,
+      touchable = defaultTouchable,
+      gestures = {},
+      listeners = (0,d3_dispatch__WEBPACK_IMPORTED_MODULE_0__.default)("start", "drag", "end"),
+      active = 0,
+      mousedownx,
+      mousedowny,
+      mousemoving,
+      touchending,
+      clickDistance2 = 0;
+
+  function drag(selection) {
+    selection
+        .on("mousedown.drag", mousedowned)
+      .filter(touchable)
+        .on("touchstart.drag", touchstarted)
+        .on("touchmove.drag", touchmoved)
+        .on("touchend.drag touchcancel.drag", touchended)
+        .style("touch-action", "none")
+        .style("-webkit-tap-highlight-color", "rgba(0,0,0,0)");
+  }
+
+  function mousedowned(event, d) {
+    if (touchending || !filter.call(this, event, d)) return;
+    var gesture = beforestart(this, container.call(this, event, d), event, d, "mouse");
+    if (!gesture) return;
+    (0,d3_selection__WEBPACK_IMPORTED_MODULE_1__.default)(event.view).on("mousemove.drag", mousemoved, true).on("mouseup.drag", mouseupped, true);
+    (0,_nodrag_js__WEBPACK_IMPORTED_MODULE_2__.default)(event.view);
+    (0,_noevent_js__WEBPACK_IMPORTED_MODULE_3__.nopropagation)(event);
+    mousemoving = false;
+    mousedownx = event.clientX;
+    mousedowny = event.clientY;
+    gesture("start", event);
+  }
+
+  function mousemoved(event) {
+    (0,_noevent_js__WEBPACK_IMPORTED_MODULE_3__.default)(event);
+    if (!mousemoving) {
+      var dx = event.clientX - mousedownx, dy = event.clientY - mousedowny;
+      mousemoving = dx * dx + dy * dy > clickDistance2;
+    }
+    gestures.mouse("drag", event);
+  }
+
+  function mouseupped(event) {
+    (0,d3_selection__WEBPACK_IMPORTED_MODULE_1__.default)(event.view).on("mousemove.drag mouseup.drag", null);
+    (0,_nodrag_js__WEBPACK_IMPORTED_MODULE_2__.yesdrag)(event.view, mousemoving);
+    (0,_noevent_js__WEBPACK_IMPORTED_MODULE_3__.default)(event);
+    gestures.mouse("end", event);
+  }
+
+  function touchstarted(event, d) {
+    if (!filter.call(this, event, d)) return;
+    var touches = event.changedTouches,
+        c = container.call(this, event, d),
+        n = touches.length, i, gesture;
+
+    for (i = 0; i < n; ++i) {
+      if (gesture = beforestart(this, c, event, d, touches[i].identifier, touches[i])) {
+        (0,_noevent_js__WEBPACK_IMPORTED_MODULE_3__.nopropagation)(event);
+        gesture("start", event, touches[i]);
+      }
+    }
+  }
+
+  function touchmoved(event) {
+    var touches = event.changedTouches,
+        n = touches.length, i, gesture;
+
+    for (i = 0; i < n; ++i) {
+      if (gesture = gestures[touches[i].identifier]) {
+        (0,_noevent_js__WEBPACK_IMPORTED_MODULE_3__.default)(event);
+        gesture("drag", event, touches[i]);
+      }
+    }
+  }
+
+  function touchended(event) {
+    var touches = event.changedTouches,
+        n = touches.length, i, gesture;
+
+    if (touchending) clearTimeout(touchending);
+    touchending = setTimeout(function() { touchending = null; }, 500); // Ghost clicks are delayed!
+    for (i = 0; i < n; ++i) {
+      if (gesture = gestures[touches[i].identifier]) {
+        (0,_noevent_js__WEBPACK_IMPORTED_MODULE_3__.nopropagation)(event);
+        gesture("end", event, touches[i]);
+      }
+    }
+  }
+
+  function beforestart(that, container, event, d, identifier, touch) {
+    var dispatch = listeners.copy(),
+        p = (0,d3_selection__WEBPACK_IMPORTED_MODULE_4__.default)(touch || event, container), dx, dy,
+        s;
+
+    if ((s = subject.call(that, new _event_js__WEBPACK_IMPORTED_MODULE_5__.default("beforestart", {
+        sourceEvent: event,
+        target: drag,
+        identifier,
+        active,
+        x: p[0],
+        y: p[1],
+        dx: 0,
+        dy: 0,
+        dispatch
+      }), d)) == null) return;
+
+    dx = s.x - p[0] || 0;
+    dy = s.y - p[1] || 0;
+
+    return function gesture(type, event, touch) {
+      var p0 = p, n;
+      switch (type) {
+        case "start": gestures[identifier] = gesture, n = active++; break;
+        case "end": delete gestures[identifier], --active; // nobreak
+        case "drag": p = (0,d3_selection__WEBPACK_IMPORTED_MODULE_4__.default)(touch || event, container), n = active; break;
+      }
+      dispatch.call(
+        type,
+        that,
+        new _event_js__WEBPACK_IMPORTED_MODULE_5__.default(type, {
+          sourceEvent: event,
+          subject: s,
+          target: drag,
+          identifier,
+          active: n,
+          x: p[0] + dx,
+          y: p[1] + dy,
+          dx: p[0] - p0[0],
+          dy: p[1] - p0[1],
+          dispatch
+        }),
+        d
+      );
+    };
+  }
+
+  drag.filter = function(_) {
+    return arguments.length ? (filter = typeof _ === "function" ? _ : (0,_constant_js__WEBPACK_IMPORTED_MODULE_6__.default)(!!_), drag) : filter;
+  };
+
+  drag.container = function(_) {
+    return arguments.length ? (container = typeof _ === "function" ? _ : (0,_constant_js__WEBPACK_IMPORTED_MODULE_6__.default)(_), drag) : container;
+  };
+
+  drag.subject = function(_) {
+    return arguments.length ? (subject = typeof _ === "function" ? _ : (0,_constant_js__WEBPACK_IMPORTED_MODULE_6__.default)(_), drag) : subject;
+  };
+
+  drag.touchable = function(_) {
+    return arguments.length ? (touchable = typeof _ === "function" ? _ : (0,_constant_js__WEBPACK_IMPORTED_MODULE_6__.default)(!!_), drag) : touchable;
+  };
+
+  drag.on = function() {
+    var value = listeners.on.apply(listeners, arguments);
+    return value === listeners ? drag : value;
+  };
+
+  drag.clickDistance = function(_) {
+    return arguments.length ? (clickDistance2 = (_ = +_) * _, drag) : Math.sqrt(clickDistance2);
+  };
+
+  return drag;
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/d3-drag/src/event.js":
+/*!*******************************************!*\
+  !*** ./node_modules/d3-drag/src/event.js ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* binding */ DragEvent
+/* harmony export */ });
+function DragEvent(type, {
+  sourceEvent,
+  subject,
+  target,
+  identifier,
+  active,
+  x, y, dx, dy,
+  dispatch
+}) {
+  Object.defineProperties(this, {
+    type: {value: type, enumerable: true, configurable: true},
+    sourceEvent: {value: sourceEvent, enumerable: true, configurable: true},
+    subject: {value: subject, enumerable: true, configurable: true},
+    target: {value: target, enumerable: true, configurable: true},
+    identifier: {value: identifier, enumerable: true, configurable: true},
+    active: {value: active, enumerable: true, configurable: true},
+    x: {value: x, enumerable: true, configurable: true},
+    y: {value: y, enumerable: true, configurable: true},
+    dx: {value: dx, enumerable: true, configurable: true},
+    dy: {value: dy, enumerable: true, configurable: true},
+    _: {value: dispatch}
+  });
+}
+
+DragEvent.prototype.on = function() {
+  var value = this._.on.apply(this._, arguments);
+  return value === this._ ? this : value;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/d3-drag/src/nodrag.js":
+/*!********************************************!*\
+  !*** ./node_modules/d3-drag/src/nodrag.js ***!
+  \********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* export default binding */ __WEBPACK_DEFAULT_EXPORT__,
+/* harmony export */   "yesdrag": () => /* binding */ yesdrag
+/* harmony export */ });
+/* harmony import */ var d3_selection__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! d3-selection */ "./node_modules/d3-selection/src/select.js");
+/* harmony import */ var _noevent_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./noevent.js */ "./node_modules/d3-drag/src/noevent.js");
+
+
+
+/* harmony default export */ function __WEBPACK_DEFAULT_EXPORT__(view) {
+  var root = view.document.documentElement,
+      selection = (0,d3_selection__WEBPACK_IMPORTED_MODULE_0__.default)(view).on("dragstart.drag", _noevent_js__WEBPACK_IMPORTED_MODULE_1__.default, true);
+  if ("onselectstart" in root) {
+    selection.on("selectstart.drag", _noevent_js__WEBPACK_IMPORTED_MODULE_1__.default, true);
+  } else {
+    root.__noselect = root.style.MozUserSelect;
+    root.style.MozUserSelect = "none";
+  }
+}
+
+function yesdrag(view, noclick) {
+  var root = view.document.documentElement,
+      selection = (0,d3_selection__WEBPACK_IMPORTED_MODULE_0__.default)(view).on("dragstart.drag", null);
+  if (noclick) {
+    selection.on("click.drag", _noevent_js__WEBPACK_IMPORTED_MODULE_1__.default, true);
+    setTimeout(function() { selection.on("click.drag", null); }, 0);
+  }
+  if ("onselectstart" in root) {
+    selection.on("selectstart.drag", null);
+  } else {
+    root.style.MozUserSelect = root.__noselect;
+    delete root.__noselect;
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/d3-drag/src/noevent.js":
+/*!*********************************************!*\
+  !*** ./node_modules/d3-drag/src/noevent.js ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "nopropagation": () => /* binding */ nopropagation,
+/* harmony export */   "default": () => /* export default binding */ __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
+function nopropagation(event) {
+  event.stopImmediatePropagation();
+}
+
+/* harmony default export */ function __WEBPACK_DEFAULT_EXPORT__(event) {
+  event.preventDefault();
+  event.stopImmediatePropagation();
+}
 
 
 /***/ }),
@@ -1727,6 +2055,41 @@ var xhtml = "http://www.w3.org/1999/xhtml";
   xml: "http://www.w3.org/XML/1998/namespace",
   xmlns: "http://www.w3.org/2000/xmlns/"
 });
+
+
+/***/ }),
+
+/***/ "./node_modules/d3-selection/src/pointer.js":
+/*!**************************************************!*\
+  !*** ./node_modules/d3-selection/src/pointer.js ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* export default binding */ __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
+/* harmony import */ var _sourceEvent_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./sourceEvent.js */ "./node_modules/d3-selection/src/sourceEvent.js");
+
+
+/* harmony default export */ function __WEBPACK_DEFAULT_EXPORT__(event, node) {
+  event = (0,_sourceEvent_js__WEBPACK_IMPORTED_MODULE_0__.default)(event);
+  if (node === undefined) node = event.currentTarget;
+  if (node) {
+    var svg = node.ownerSVGElement || node;
+    if (svg.createSVGPoint) {
+      var point = svg.createSVGPoint();
+      point.x = event.clientX, point.y = event.clientY;
+      point = point.matrixTransform(node.getScreenCTM().inverse());
+      return [point.x, point.y];
+    }
+    if (node.getBoundingClientRect) {
+      var rect = node.getBoundingClientRect();
+      return [event.clientX - rect.left - node.clientLeft, event.clientY - rect.top - node.clientTop];
+    }
+  }
+  return [event.pageX, event.pageY];
+}
 
 
 /***/ }),
@@ -3208,6 +3571,25 @@ function empty() {
   return selector == null ? empty : function() {
     return this.querySelectorAll(selector);
   };
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/d3-selection/src/sourceEvent.js":
+/*!******************************************************!*\
+  !*** ./node_modules/d3-selection/src/sourceEvent.js ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => /* export default binding */ __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
+/* harmony default export */ function __WEBPACK_DEFAULT_EXPORT__(event) {
+  let sourceEvent;
+  while (sourceEvent = event.sourceEvent) event = sourceEvent;
+  return event;
 }
 
 

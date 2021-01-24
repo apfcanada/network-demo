@@ -7,6 +7,7 @@ import {
 	forceX,
 	forceLink
 } from 'd3-force'
+import { drag as d3Drag } from 'd3-drag'
 
 import './basic.css'
 
@@ -36,6 +37,12 @@ json('https://www.asiapacific.ca/pgapi/public/jurisdiction.php?sisters')
 			l.target = jurisdictions.find( j => j.geo_id == l.pair[1] )
 		} )
 		
+		const simulation = forceSimulation(jurisdictions)
+			.force("link", forceLink(links).id(d => d.uid).distance(20).strength(0.5))
+			.force("charge", forceManyBody().strength(-50))
+			.force("x", forceX(width/2))
+			.force("y", forceY(height/2))
+		
 		let lines = select('svg#map')
 			.selectAll('line')
 			.data(links)
@@ -55,13 +62,8 @@ json('https://www.asiapacific.ca/pgapi/public/jurisdiction.php?sisters')
 			.attr('r',radius)
 			.attr('cx',j=>j.x)
 			.attr('cy',j=>j.y)
+			.call(drag(simulation))
 			.append('title').text(d=>d.name.en)
-
-		const simulation = forceSimulation(jurisdictions)
-			.force("link", forceLink(links).id(d => d.uid).distance(20).strength(0.5))
-			.force("charge", forceManyBody().strength(-50))
-			.force("x", forceX(width/2))
-			.force("y", forceY(height/2))
 			
 		simulation.on("tick", () => {
 			lines
@@ -75,23 +77,27 @@ json('https://www.asiapacific.ca/pgapi/public/jurisdiction.php?sisters')
 		})
 	} )
 	
-	
-function parseLinks(sisters){
-	// process links
-	let pairs = new Set()
-	// links are strings of the two geo_id's with the lower coming first
-	sisters.map( j => {
-		j.links.map( sis_id => {
-			let ids = j.geo_id < sis_id ? [j.geo_id,sis_id] : [sis_id,j.geo_id]
-			pairs.add(ids.join(','))
-		})
-	} ) 
-	// replace strings with object references
-	return [...pairs].map( link_csv => {
-		let ids = link_csv.split(',')
-		return [
-			sisters.find( j => j.geo_id == ids[0] ),
-			sisters.find( j => j.geo_id == ids[1] )
-		]
-	} )
+function drag(simulation){
+
+	function dragstarted(event) {
+		if (!event.active) simulation.alphaTarget(0.3).restart();
+		event.subject.fx = event.subject.x;
+		event.subject.fy = event.subject.y;
+	}
+  
+	function dragged(event) {
+		event.subject.fx = event.x;
+		event.subject.fy = event.y;
+	}
+  
+	function dragended(event) {
+		if (!event.active) simulation.alphaTarget(0);
+		event.subject.fx = null;
+		event.subject.fy = null;
+	}
+  
+	return d3Drag()
+		.on("start", dragstarted)
+		.on("drag", dragged)
+		.on("end", dragended);
 }

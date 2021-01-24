@@ -26,8 +26,9 @@ __webpack_require__.r(__webpack_exports__);
 var width = 500;
 var height = 500;
 var radius = 8;
+var API = 'https://www.asiapacific.ca/pgapi/public/jurisdiction.php';
 (0,d3_selection__WEBPACK_IMPORTED_MODULE_1__.default)('svg#map').attr('width', "".concat(width, "px")).attr('height', "".concat(height, "px"));
-(0,d3_fetch__WEBPACK_IMPORTED_MODULE_2__.default)('https://www.asiapacific.ca/pgapi/public/jurisdiction.php?sisters').then(function (response) {
+(0,d3_fetch__WEBPACK_IMPORTED_MODULE_2__.default)("".concat(API, "?sisters")).then(function (response) {
   // alias
   var jurisdictions = response.jurisdictions;
   var links = response.links; // initialize with random locations
@@ -62,12 +63,25 @@ var radius = 8;
   var circles = (0,d3_selection__WEBPACK_IMPORTED_MODULE_1__.default)('svg#map').selectAll('circle').data(jurisdictions).join('circle');
   circles.attr('id', function (j) {
     return j.geo_id;
-  }).attr('r', radius).attr('cx', function (j) {
+  }).attr('r', radius).attr('class', function (j) {
+    return j.canadian ? 'canadian' : null;
+  }).attr('cx', function (j) {
     return j.x;
   }).attr('cy', function (j) {
     return j.y;
   }).call(drag(simulation)).append('title').text(function (d) {
     return d.name.en;
+  });
+  (0,d3_fetch__WEBPACK_IMPORTED_MODULE_2__.default)("".concat(API, "?geo_id=2&listDescendants")).then(function (canada) {
+    var cids = new Set(canada.descendants.map(function (cj) {
+      return cj.geo_id;
+    }));
+    jurisdictions.map(function (j) {
+      if (cids.has(j.geo_id)) j.canadian = true;
+    });
+    circles.attr('class', function (j) {
+      return j.canadian ? 'canadian' : null;
+    });
   });
   simulation.on("tick", function () {
     lines.attr("x1", function (d) {
@@ -126,7 +140,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "circle {\n\tz-index: -1;\n\tfill: rgba(0,0,0,0.25);\n\tstroke: black;\n\tstroke-width: 1px;\n}\n\nline {\n\tstroke: red;\n\tstroke-width: 1px;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "circle {\n\tz-index: -1;\n\tfill: rgba(0,0,255,0.25);\n\tstroke: black;\n\tstroke-width: 1px;\n}\n\ncircle.canadian {\n\tfill: rgba(255,0,0,0.25);\n}\n\nline {\n\tstroke: red;\n\tstroke-width: 1px;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

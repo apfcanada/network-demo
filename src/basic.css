@@ -10,6 +10,16 @@ circle.canadian {
 }
 
 line {
+	stroke: grey;
+	stroke-width: 1px;
+}
+
+line.sister {
+	stroke: red;
+}
+
+#legend {
+	fill: rgba(255,255,255,0.75);
 	stroke: red;
 	stroke-width: 1px;
 }

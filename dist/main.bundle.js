@@ -27,7 +27,36 @@ var width = 500;
 var height = 500;
 var radius = 8;
 var API = 'https://www.asiapacific.ca/pgapi/public/jurisdiction.php';
-(0,d3_selection__WEBPACK_IMPORTED_MODULE_1__.default)('svg#map').attr('width', "".concat(width, "px")).attr('height', "".concat(height, "px"));
+var SVG = (0,d3_selection__WEBPACK_IMPORTED_MODULE_1__.default)('svg#map').attr('width', "".concat(width, "px")).attr('height', "".concat(height, "px"));
+var chart = SVG.append('g').attr('id', 'chart');
+var LEGEND = SVG.append('g').attr('id', 'legend');
+var legendItems = [{
+  label: 'Canadian jurisdiction',
+  element: {
+    type: 'circle',
+    attributes: {
+      r: radius,
+      "class": 'canadian',
+      cx: 10,
+      cy: 10
+    }
+  }
+}, {
+  label: 'Asian jurisdiction',
+  element: {
+    type: 'circle',
+    attributes: {
+      r: radius,
+      cx: 10,
+      cy: 10
+    }
+  }
+}];
+LEGEND.append('rect').attr('width', 200).attr('height', 100);
+var items = LEGEND.selectAll('g.item').data(legendItems).join('g').attr('class', 'item');
+items.append('text').text(function (d) {
+  return d.label;
+});
 (0,d3_fetch__WEBPACK_IMPORTED_MODULE_2__.default)("".concat(API, "?sisters")).then(function (response) {
   // alias
   var jurisdictions = response.jurisdictions;
@@ -40,27 +69,46 @@ var API = 'https://www.asiapacific.ca/pgapi/public/jurisdiction.php';
 
   links.map(function (l, i) {
     l.uid = i;
+    l["class"] = 'sister';
     l.source = jurisdictions.find(function (j) {
       return j.geo_id == l.pair[0];
     });
     l.target = jurisdictions.find(function (j) {
       return j.geo_id == l.pair[1];
     });
+  }); // add links to any parent-child features included here
+
+  jurisdictions.map(function (j) {
+    var parent = jurisdictions.find(function (p) {
+      return p.geo_id == j.parent;
+    });
+
+    if (parent) {
+      links.push({
+        uid: "".concat(parent.geo_id, " -> ").concat(j.geo_id),
+        "class": 'parent',
+        source: parent,
+        target: j
+      });
+    }
   });
+  console.log(links);
   var simulation = (0,d3_force__WEBPACK_IMPORTED_MODULE_3__.default)(jurisdictions).force("link", (0,d3_force__WEBPACK_IMPORTED_MODULE_4__.default)(links).id(function (d) {
     return d.uid;
   }).distance(20).strength(0.5)).force("charge", (0,d3_force__WEBPACK_IMPORTED_MODULE_5__.default)().strength(-50)).force("x", (0,d3_force__WEBPACK_IMPORTED_MODULE_6__.default)(width / 2)).force("y", (0,d3_force__WEBPACK_IMPORTED_MODULE_7__.default)(height / 2));
-  var lines = (0,d3_selection__WEBPACK_IMPORTED_MODULE_1__.default)('svg#map').selectAll('line').data(links).join('line');
+  var lines = chart.selectAll('line').data(links).join('line');
   lines.attr('x1', function (l) {
-    return l.pair[0].x;
+    return l.source.x;
   }).attr('x2', function (l) {
-    return l.pair[1].x;
+    return l.target.x;
   }).attr('y1', function (l) {
-    return l.pair[0].y;
+    return l.source.y;
   }).attr('y2', function (l) {
-    return l.pair[1].y;
+    return l.target.y;
+  }).attr('class', function (l) {
+    return l["class"];
   });
-  var circles = (0,d3_selection__WEBPACK_IMPORTED_MODULE_1__.default)('svg#map').selectAll('circle').data(jurisdictions).join('circle');
+  var circles = chart.selectAll('circle').data(jurisdictions).join('circle');
   circles.attr('id', function (j) {
     return j.geo_id;
   }).attr('r', radius).attr('class', function (j) {
@@ -140,7 +188,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "circle {\n\tz-index: -1;\n\tfill: rgba(0,0,255,0.25);\n\tstroke: black;\n\tstroke-width: 1px;\n}\n\ncircle.canadian {\n\tfill: rgba(255,0,0,0.25);\n}\n\nline {\n\tstroke: red;\n\tstroke-width: 1px;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "circle {\n\tz-index: -1;\n\tfill: rgba(0,0,255,0.25);\n\tstroke: black;\n\tstroke-width: 1px;\n}\n\ncircle.canadian {\n\tfill: rgba(255,0,0,0.25);\n}\n\nline {\n\tstroke: grey;\n\tstroke-width: 1px;\n}\n\nline.sister {\n\tstroke: red;\n}\n\n#legend {\n\tfill: rgba(255,255,255,0.75);\n\tstroke: red;\n\tstroke-width: 1px;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

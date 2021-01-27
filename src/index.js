@@ -14,10 +14,49 @@ const radius = 8
 
 const API = 'https://www.asiapacific.ca/pgapi/public/jurisdiction.php'
 
-select('svg#map')
+const SVG = select('svg#map')
 	.attr('width',`${width}px`)
 	.attr('height',`${height}px`)
 	
+const chart = SVG.append('g').attr('id','chart')
+	
+const LEGEND = SVG.append('g').attr('id','legend')
+
+const legendItems = [
+	{
+		label: 'Canadian jurisdiction',
+		element: {
+			type:'circle',
+			attributes: { 
+				r: radius,
+				class: 'canadian',
+				cx: 10,
+				cy: 10
+			}
+		}
+	},{
+		label: 'Asian jurisdiction',
+		element: {
+			type:'circle',
+			attributes: { 
+				r: radius,
+				cx: 10,
+				cy: 10
+			}
+		}
+	}
+] 
+
+LEGEND.append('rect')
+	.attr('width',200)
+	.attr('height',100)
+	
+let items = LEGEND
+	.selectAll('g.item')
+	.data(legendItems)
+	.join('g').attr('class','item')
+items.append('text').text(d=>d.label)
+
 json(`${API}?sisters`).then( response => {
 	// alias
 	const jurisdictions = response.jurisdictions
@@ -32,9 +71,25 @@ json(`${API}?sisters`).then( response => {
 	// add direct references to links
 	links.map( (l,i) => {
 		l.uid = i 
+		l.class = 'sister'
 		l.source = jurisdictions.find( j => j.geo_id == l.pair[0] )
 		l.target = jurisdictions.find( j => j.geo_id == l.pair[1] )
 	} )
+	
+	// add links to any parent-child features included here
+	jurisdictions.map( j => {
+		let parent = jurisdictions.find(p=>p.geo_id==j.parent)
+		if(parent){
+			links.push({
+				uid: `${parent.geo_id} -> ${j.geo_id}`,
+				class: 'parent',
+				source: parent,
+				target: j
+			})
+		}
+	} )
+	
+	console.log(links)
 		
 	const simulation = forceSimulation(jurisdictions)
 		.force("link", forceLink(links).id(d => d.uid).distance(20).strength(0.5))
@@ -42,17 +97,18 @@ json(`${API}?sisters`).then( response => {
 		.force("x", forceX(width/2))
 		.force("y", forceY(height/2))
 		
-	let lines = select('svg#map')
+	let lines = chart
 		.selectAll('line')
 		.data(links)
 		.join('line')
 	lines
-		.attr('x1',l=>l.pair[0].x)
-		.attr('x2',l=>l.pair[1].x)
-		.attr('y1',l=>l.pair[0].y)
-		.attr('y2',l=>l.pair[1].y)
-			
-	let circles = select('svg#map')
+		.attr('x1',l=>l.source.x)
+		.attr('x2',l=>l.target.x)
+		.attr('y1',l=>l.source.y)
+		.attr('y2',l=>l.target.y)
+		.attr('class',l=>l.class)
+		
+	let circles = chart
 		.selectAll('circle')
 		.data(jurisdictions)
 		.join('circle')

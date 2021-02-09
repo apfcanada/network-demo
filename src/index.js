@@ -19,43 +19,6 @@ const SVG = select('svg#map')
 	.attr('height',`${height}px`)
 	
 const chart = SVG.append('g').attr('id','chart')
-	
-const LEGEND = SVG.append('g').attr('id','legend')
-
-const legendItems = [
-	{
-		label: 'Canadian jurisdiction',
-		element: {
-			type:'circle',
-			attributes: { 
-				r: radius,
-				class: 'canadian',
-				cx: 10,
-				cy: 10
-			}
-		}
-	},{
-		label: 'Asian jurisdiction',
-		element: {
-			type:'circle',
-			attributes: { 
-				r: radius,
-				cx: 10,
-				cy: 10
-			}
-		}
-	}
-] 
-
-LEGEND.append('rect')
-	.attr('width',200)
-	.attr('height',100)
-	
-let items = LEGEND
-	.selectAll('g.item')
-	.data(legendItems)
-	.join('g').attr('class','item')
-items.append('text').text(d=>d.label)
 
 json(`${API}?sisters`).then( response => {
 	// alias
